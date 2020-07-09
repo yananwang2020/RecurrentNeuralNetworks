@@ -1,0 +1,36 @@
+Model setting parameters:
+hidden_size: the total num of features in the hidden state h
+input_size: the total num of all features in the input X
+sample_size: how many units in one sample
+
+Input parameters:
+Xs: input features
+    matrix shape (sample_size)
+
+Ys: real output features
+    matrix shape (sample_size)
+
+Model parameters:
+Wxh: the weights from X to H
+    matrix shape (hidden_size, input_size)
+Whh: the weights from H to H 
+    matrix shape (hidden_size, hidden_size)
+Why: the weights from H to Y
+    matrix shape (input_size, hidden_size)
+Bh: the bias of H
+    matrix shape (hidden_size, 1)
+By: the bias of Y
+    matrix shape (input_size, 1)
+
+Intermediate parameters:
+Hs: the hiden states
+    matrix shape (sample_size, (hidden_size, 1))
+
+Ss: the scores of next features
+    matrix shape (sample_size, (input_size, 1))
+
+Output parameters:
+Ps: the possibilities of next features
+    matrix shape (sample_size, (input_size, (1)))
+
+Loss: overall loss the forward pass
