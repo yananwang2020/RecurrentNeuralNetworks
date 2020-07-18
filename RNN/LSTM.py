@@ -6,11 +6,13 @@
 #   - update weights
 
 import numpy as np
-from pathlib import Path
+import torch
 import pickle
+from pathlib import Path
 
-class RNN_Vanilla:
-    'This is the simplest RNN class'
+class RNN_LSTM:
+    'This is the long short-time memery version of RNN class'
+    'For sentiment recognition'
 
     def __init__(self, hiddensize, inputsize, lr):
         self.hidden_size = hiddensize
@@ -18,11 +20,15 @@ class RNN_Vanilla:
         self.learning_rate = lr
         
         # model parameters
-        self.Wxh = np.random.randn(self.hidden_size, self.input_size)*0.01 # input to hidden
-        self.Whh = np.random.randn(self.hidden_size, self.hidden_size)*0.01 # hidden to hidden
-        self.Why = np.random.randn(self.input_size, self.hidden_size)*0.01 # hidden to output
-        self.Bh = np.zeros((self.hidden_size, 1)) # hidden bias
-        self.By = np.zeros((self.input_size, 1)) # output bias
+        self.Wf = torch.randn(self.hidden_size, self.input_size)
+        self.Wi = torch.randn(self.hidden_size, self.input_size)
+        self.Wp = torch.randn(self.hidden_size, self.input_size)
+        self.Wo = torch.randn(self.hidden_size, self.input_size)
+        
+        self.Bf = torch.zeros(self.hidden_size, 1)
+        self.Bi = torch.zeros(self.hidden_size, 1)
+        self.Bp = torch.zeros(self.hidden_size, 1)
+        self.Bo = torch.zeros(self.hidden_size, 1)
 
     def LoadParam(self, filepath):
         if filepath.exists():
@@ -35,7 +41,7 @@ class RNN_Vanilla:
     def SaveParam(self, filepath):        
         with open(filepath, 'wb+') as f:
             pickle.dump(vars(self), f)
-    
+
     def Epoch(self, inputdata, h_pre):
         'whole pass'
         input_X = inputdata[:-1]

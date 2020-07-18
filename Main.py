@@ -1,4 +1,4 @@
-from RNNVanilla import RNN_Vanilla
+from RNN.Vanilla import RNN_Vanilla
 from pathlib import Path
 import numpy as np
 
@@ -33,8 +33,8 @@ rnn_model.LoadParam(param_file_path)
 crt_iter = 0
 bunch_idx = 0
 bunch_end = bunch_idx + bunch_size + 1
-train_iter = 1000
-sample_iter = (250, 500, 750, 1000)
+train_iter = 100
+sample_iter = 25
 while crt_iter < train_iter:
     crt_iter+=1
 
@@ -55,7 +55,7 @@ while crt_iter < train_iter:
     loss, h_pre = rnn_model.Epoch(bunch_data, h_pre)
 
     # sample
-    if(crt_iter in sample_iter):
+    if(crt_iter % sample_iter == 0):
         print(f'Iter: {crt_iter}, Loss: {loss}')    
 
 rnn_model.SaveParam(param_file_path)
