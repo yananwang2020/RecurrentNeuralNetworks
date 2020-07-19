@@ -7,57 +7,48 @@
 
 import numpy as np
 import torch
-import pickle
-from pathlib import Path
+from .RNNBase import RNN_Base
 
-class RNN_LSTM:
+class RNN_LSTM(RNN_Base):
     'This is the long short-time memery version of RNN class'
     'For sentiment recognition'
 
     def __init__(self, hiddensize, inputsize, lr):
-        self.hidden_size = hiddensize
-        self.input_size = inputsize
-        self.learning_rate = lr
+        super(RNN_LSTM, self).__init__()
+
+        self.Hidden_Size = hiddensize
+        self.Input_Size = inputsize
+        self.Learning_Rate = lr
         
         # model parameters
-        self.Wf = torch.randn(self.hidden_size, self.input_size)
-        self.Wi = torch.randn(self.hidden_size, self.input_size)
-        self.Wp = torch.randn(self.hidden_size, self.input_size)
-        self.Wo = torch.randn(self.hidden_size, self.input_size)
+        self.Wf = torch.randn(self.Hidden_Size, self.Input_Size, requires_grad=True)
+        self.Wi = torch.randn(self.Hidden_Size, self.Input_Size, requires_grad=True)
+        self.Wa = torch.randn(self.Hidden_Size, self.Input_Size, requires_grad=True)
+        self.Wo = torch.randn(self.Hidden_Size, self.Input_Size, requires_grad=True)
         
-        self.Bf = torch.zeros(self.hidden_size, 1)
-        self.Bi = torch.zeros(self.hidden_size, 1)
-        self.Bp = torch.zeros(self.hidden_size, 1)
-        self.Bo = torch.zeros(self.hidden_size, 1)
+        self.Bf = torch.zeros(self.Hidden_Size, 1, requires_grad=True)
+        self.Bi = torch.zeros(self.Hidden_Size, 1, requires_grad=True)
+        self.Ba = torch.zeros(self.Hidden_Size, 1, requires_grad=True)
+        self.Bo = torch.zeros(self.Hidden_Size, 1, requires_grad=True)
 
-    def LoadParam(self, filepath):
-        if filepath.exists():
-            with open(filepath, 'rb') as f:
-                filedata = pickle.load(f)
-                for var in vars(self):
-                    setattr(self, var, filedata[var])
-                return True
-
-    def SaveParam(self, filepath):        
-        with open(filepath, 'wb+') as f:
-            pickle.dump(vars(self), f)
-
-    def Epoch(self, inputdata, h_pre):
+    def Epoch(self, input_x, output_y, h_pre):
         'whole pass'
-        input_X = inputdata[:-1]
-        input_Y = inputdata[1:]
-        Xs, Hs, Ss, Ps= {}, {}, {}, {}
-        Hs[-1] = np.copy(h_pre)
-        Loss = 0
+        Input_X = torch.tensor(input_x)
+        Input_Y = outputy
 
+        C_pre = torch.zeros(self.Hidden_Size, 1)
+        H_pre = h_pre
+        
         # forward pass
-        for t in range(len(input_X)):
-            Xs[t] = np.zeros((self.input_size, 1))
-            Xs[t][input_X[t]] = 1
-            Hs[t] = np.tanh(np.dot(self.Wxh, Xs[t]) + np.dot(self.Whh, Hs[t-1]) + self.Bh)
-            Ss[t] = np.dot(self.Why, Hs[t]) + self.By
-            Ps[t] = np.exp(Ss[t]) / np.sum(np.exp(Ss[t])) # softmax function
-            Loss += -np.log(Ps[t][input_Y[t]][0]) # softmax loss
+        for t in range(len(Input_X)):
+            HX = torch.cat(Input_X, H_pre)
+            Ft = torch.sigmoid(torch.mm(self.Wf, HX) + self.Bf)
+            It = torch.sigmoid(torch.mm(self.Wi, HX) + self.Bi)
+            At = torch.tanh(torch.mm(self.Wa, HX) + self.Ba)
+            Ct = torch.mm(C_pre, Ft) + torch.mm(It, At)
+            Ot = torch.sigmoid(torch.mm(self.Wo, HX) + self.Bo)
+            Ht = Ot * torch.tanh(Ct)
+            Cpre = Ct
 
         # backward pass
         dWxh, dWhh, dWhy = np.zeros_like(self.Wxh), np.zeros_like(self.Whh), np.zeros_like(self.Why)
